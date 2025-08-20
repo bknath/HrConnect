@@ -3,9 +3,12 @@ import {
   type Employee, type InsertEmployee, type EmployeeWithDepartment,
   type Attendance, type InsertAttendance, type AttendanceWithEmployee,
   type LeaveRequest, type InsertLeaveRequest, type LeaveRequestWithEmployee,
-  type LeaveBalance, type InsertLeaveBalance
+  type LeaveBalance, type InsertLeaveBalance,
+  departments, employees, attendance, leaveRequests, leaveBalances
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // Departments
@@ -95,7 +98,13 @@ export class MemStorage implements IStorage {
 
   async createDepartment(department: InsertDepartment): Promise<Department> {
     const id = randomUUID();
-    const newDepartment: Department = { ...department, id };
+    const newDepartment: Department = { 
+      ...department, 
+      id,
+      description: department.description || null,
+      managerId: department.managerId || null,
+      budget: department.budget || null
+    };
     this.departments.set(id, newDepartment);
     return newDepartment;
   }
@@ -138,7 +147,14 @@ export class MemStorage implements IStorage {
 
   async createEmployee(employee: InsertEmployee): Promise<Employee> {
     const id = randomUUID();
-    const newEmployee: Employee = { ...employee, id };
+    const newEmployee: Employee = { 
+      ...employee, 
+      id,
+      phone: employee.phone || null,
+      departmentId: employee.departmentId || null,
+      salary: employee.salary || null,
+      avatar: employee.avatar || null
+    };
     this.employees.set(id, newEmployee);
     
     // Create default leave balances
@@ -201,7 +217,13 @@ export class MemStorage implements IStorage {
 
   async createAttendance(attendance: InsertAttendance): Promise<Attendance> {
     const id = randomUUID();
-    const newAttendance: Attendance = { ...attendance, id };
+    const newAttendance: Attendance = { 
+      ...attendance, 
+      id,
+      checkIn: attendance.checkIn || null,
+      checkOut: attendance.checkOut || null,
+      hoursWorked: attendance.hoursWorked || null
+    };
     this.attendance.set(id, newAttendance);
     return newAttendance;
   }
@@ -240,7 +262,7 @@ export class MemStorage implements IStorage {
     const newLeaveRequest: LeaveRequest = { 
       ...leaveRequest, 
       id,
-      appliedAt: new Date().toISOString(),
+      appliedAt: new Date().toISOString() as any,
       reviewedAt: null,
       reviewedBy: null
     };
@@ -287,4 +309,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./database-storage";
+
+export const storage = new DatabaseStorage();
