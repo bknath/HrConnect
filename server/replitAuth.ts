@@ -8,7 +8,10 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
+// Check if we're in local development mode
+const isLocalDevelopment = !process.env.REPLIT_DOMAINS;
+
+if (!isLocalDevelopment && !process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
@@ -24,6 +27,22 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  
+  // For local development, use memory store
+  if (isLocalDevelopment) {
+    return session({
+      secret: process.env.SESSION_SECRET || "local-development-secret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: false, // Set to false for local development
+        maxAge: sessionTtl,
+      },
+    });
+  }
+  
+  // For production, use PostgreSQL store
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -71,6 +90,12 @@ export async function setupAuth(app: Express) {
   app.use(getSession());
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // If in local development mode, set up simple auth
+  if (isLocalDevelopment) {
+    await setupLocalAuth(app);
+    return;
+  }
 
   const config = await getOidcConfig();
 
@@ -127,11 +152,74 @@ export async function setupAuth(app: Express) {
   });
 }
 
+// Simple local authentication for development
+async function setupLocalAuth(app: Express) {
+  // Create a local development user
+  const localUser = {
+    id: "local-dev-user",
+    email: "dev@local.com",
+    firstName: "Local",
+    lastName: "Developer",
+    profileImageUrl: null,
+  };
+
+  // Ensure the local user exists in storage
+  try {
+    await storage.upsertUser(localUser);
+  } catch (error) {
+    console.log("Local user already exists or storage not ready");
+  }
+
+  // Simple login route that automatically logs in the development user
+  app.get("/api/login", (req, res) => {
+    req.login({
+      claims: {
+        sub: localUser.id,
+        email: localUser.email,
+        first_name: localUser.firstName,
+        last_name: localUser.lastName,
+        profile_image_url: localUser.profileImageUrl,
+        exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7 days
+      },
+      access_token: "local-token",
+      refresh_token: "local-refresh",
+      expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60),
+    }, (err) => {
+      if (err) {
+        console.error("Login error:", err);
+        return res.status(500).json({ message: "Login failed" });
+      }
+      res.redirect("/");
+    });
+  });
+
+  // Simple logout route
+  app.get("/api/logout", (req, res) => {
+    req.logout(() => {
+      res.redirect("/");
+    });
+  });
+
+  // Callback route (not needed for local auth but keeping for compatibility)
+  app.get("/api/callback", (req, res) => {
+    res.redirect("/");
+  });
+
+  // Serialize/deserialize user for session
+  passport.serializeUser((user: any, cb) => cb(null, user));
+  passport.deserializeUser((user: any, cb) => cb(null, user));
+}
+
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  // For local development, skip token refresh logic
+  if (isLocalDevelopment) {
+    return next();
   }
 
   const now = Math.floor(Date.now() / 1000);

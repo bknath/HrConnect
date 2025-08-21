@@ -68,14 +68,19 @@ export class MemStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const existingUser = this.users.get(userData.id);
+    const userId = userData.id || randomUUID();
+    const existingUser = this.users.get(userId);
     const user: User = {
-      ...userData,
+      id: userId,
+      email: userData.email || null,
+      firstName: userData.firstName || null,
+      lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
       role: userData.role || "employee",
-      createdAt: existingUser?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as User;
-    this.users.set(userData.id, user);
+      createdAt: existingUser?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(userId, user);
     return user;
   }
 
@@ -320,7 +325,11 @@ export class MemStorage implements IStorage {
 
   async createLeaveBalance(leaveBalance: InsertLeaveBalance): Promise<LeaveBalance> {
     const id = randomUUID();
-    const newLeaveBalance: LeaveBalance = { ...leaveBalance, id };
+    const newLeaveBalance: LeaveBalance = { 
+      ...leaveBalance, 
+      id,
+      usedDays: leaveBalance.usedDays || 0 
+    };
     this.leaveBalances.set(id, newLeaveBalance);
     return newLeaveBalance;
   }
@@ -337,4 +346,7 @@ export class MemStorage implements IStorage {
 
 import { DatabaseStorage } from "./database-storage";
 
-export const storage = new DatabaseStorage();
+// Use MemStorage for local development, DatabaseStorage for production
+const isLocalDevelopment = !process.env.REPLIT_DOMAINS;
+
+export const storage = isLocalDevelopment ? new MemStorage() : new DatabaseStorage();
