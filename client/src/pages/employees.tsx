@@ -91,7 +91,7 @@ export default function Employees() {
             </Select>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary-dark text-white" data-testid="button-add-employee">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-add-employee">
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add Employee
                 </Button>

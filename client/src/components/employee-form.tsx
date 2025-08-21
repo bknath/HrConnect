@@ -38,7 +38,7 @@ export default function EmployeeForm({ onSuccess }: EmployeeFormProps) {
       phone: "",
       departmentId: "",
       position: "",
-      salary: 0,
+      salary: undefined,
       hireDate: new Date().toISOString().split('T')[0],
       status: "active",
       avatar: "",
@@ -123,7 +123,7 @@ export default function EmployeeForm({ onSuccess }: EmployeeFormProps) {
             <FormItem>
               <FormLabel>Phone</FormLabel>
               <FormControl>
-                <Input {...field} data-testid="input-phone" />
+                <Input {...field} value={field.value || ""} data-testid="input-phone" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -137,7 +137,7 @@ export default function EmployeeForm({ onSuccess }: EmployeeFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Department</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value || ""}>
                   <FormControl>
                     <SelectTrigger data-testid="select-department">
                       <SelectValue placeholder="Select department" />
@@ -182,6 +182,7 @@ export default function EmployeeForm({ onSuccess }: EmployeeFormProps) {
                   <Input 
                     type="number" 
                     {...field} 
+                    value={field.value || ""}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     data-testid="input-salary"
                   />
