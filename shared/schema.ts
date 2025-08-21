@@ -1,7 +1,30 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, date, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, date, timestamp, boolean, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Session storage table for authentication
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// User storage table for authentication
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  role: varchar("role").default("employee"), // employee, hr_manager, admin
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const departments = pgTable("departments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -95,6 +118,15 @@ export type InsertLeaveRequest = z.infer<typeof insertLeaveRequestSchema>;
 
 export type LeaveBalance = typeof leaveBalances.$inferSelect;
 export type InsertLeaveBalance = z.infer<typeof insertLeaveBalanceSchema>;
+
+// User types
+export const upsertUserSchema = createInsertSchema(users).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type User = typeof users.$inferSelect;
+export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 // Extended types for API responses
 export type EmployeeWithDepartment = Employee & {

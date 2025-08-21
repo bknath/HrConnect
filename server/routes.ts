@@ -2,12 +2,27 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertEmployeeSchema, insertDepartmentSchema, insertLeaveRequestSchema, insertAttendanceSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication first
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
-  // Departments
-  app.get("/api/departments", async (req, res) => {
+  // Departments (protected)
+  app.get("/api/departments", isAuthenticated, async (req, res) => {
     try {
       const departments = await storage.getDepartments();
       res.json(departments);
@@ -16,7 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/departments", async (req, res) => {
+  app.post("/api/departments", isAuthenticated, async (req, res) => {
     try {
       const departmentData = insertDepartmentSchema.parse(req.body);
       const department = await storage.createDepartment(departmentData);
@@ -30,8 +45,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Employees
-  app.get("/api/employees", async (req, res) => {
+  // Employees (protected)
+  app.get("/api/employees", isAuthenticated, async (req, res) => {
     try {
       const { department } = req.query;
       let employees;
@@ -49,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/employees/:id", async (req, res) => {
+  app.get("/api/employees/:id", isAuthenticated, async (req, res) => {
     try {
       const employee = await storage.getEmployee(req.params.id);
       if (!employee) {
@@ -61,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/employees", async (req, res) => {
+  app.post("/api/employees", isAuthenticated, async (req, res) => {
     try {
       const employeeData = insertEmployeeSchema.parse(req.body);
       const employee = await storage.createEmployee(employeeData);
@@ -75,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/employees/:id", async (req, res) => {
+  app.put("/api/employees/:id", isAuthenticated, async (req, res) => {
     try {
       const employeeData = insertEmployeeSchema.partial().parse(req.body);
       const employee = await storage.updateEmployee(req.params.id, employeeData);
@@ -92,8 +107,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Attendance
-  app.get("/api/attendance", async (req, res) => {
+  // Attendance (protected)
+  app.get("/api/attendance", isAuthenticated, async (req, res) => {
     try {
       const { date, employeeId } = req.query;
       const attendance = await storage.getAttendance(
@@ -106,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/attendance", async (req, res) => {
+  app.post("/api/attendance", isAuthenticated, async (req, res) => {
     try {
       const attendanceData = insertAttendanceSchema.parse(req.body);
       const attendance = await storage.createAttendance(attendanceData);
@@ -120,8 +135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Leave Requests
-  app.get("/api/leave-requests", async (req, res) => {
+  // Leave Requests (protected)
+  app.get("/api/leave-requests", isAuthenticated, async (req, res) => {
     try {
       const { status } = req.query;
       const leaveRequests = await storage.getLeaveRequests(status as string | undefined);
@@ -131,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/leave-requests", async (req, res) => {
+  app.post("/api/leave-requests", isAuthenticated, async (req, res) => {
     try {
       const leaveRequestData = insertLeaveRequestSchema.parse(req.body);
       const leaveRequest = await storage.createLeaveRequest(leaveRequestData);
@@ -145,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/leave-requests/:id", async (req, res) => {
+  app.put("/api/leave-requests/:id", isAuthenticated, async (req, res) => {
     try {
       const updates = req.body;
       const leaveRequest = await storage.updateLeaveRequest(req.params.id, updates);
@@ -158,8 +173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Leave Balances
-  app.get("/api/employees/:employeeId/leave-balances", async (req, res) => {
+  // Leave Balances (protected)
+  app.get("/api/employees/:employeeId/leave-balances", isAuthenticated, async (req, res) => {
     try {
       const balances = await storage.getEmployeeLeaveBalances(req.params.employeeId);
       res.json(balances);
@@ -168,8 +183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard Stats
-  app.get("/api/dashboard/stats", async (req, res) => {
+  // Dashboard Stats (protected)
+  app.get("/api/dashboard/stats", isAuthenticated, async (req, res) => {
     try {
       const employees = await storage.getEmployees();
       const departments = await storage.getDepartments();

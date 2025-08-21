@@ -4,13 +4,35 @@ import {
   type Attendance, type InsertAttendance, type AttendanceWithEmployee,
   type LeaveRequest, type InsertLeaveRequest, type LeaveRequestWithEmployee,
   type LeaveBalance, type InsertLeaveBalance,
-  departments, employees, attendance, leaveRequests, leaveBalances
+  type User, type UpsertUser,
+  departments, employees, attendance, leaveRequests, leaveBalances, users
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, gte, lte } from "drizzle-orm";
 import type { IStorage } from "./storage";
 
 export class DatabaseStorage implements IStorage {
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   // Departments
   async getDepartments(): Promise<Department[]> {
     return await db.select().from(departments);

@@ -4,13 +4,18 @@ import {
   type Attendance, type InsertAttendance, type AttendanceWithEmployee,
   type LeaveRequest, type InsertLeaveRequest, type LeaveRequestWithEmployee,
   type LeaveBalance, type InsertLeaveBalance,
-  departments, employees, attendance, leaveRequests, leaveBalances
+  type User, type UpsertUser,
+  departments, employees, attendance, leaveRequests, leaveBalances, users
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (required for authentication)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+
   // Departments
   getDepartments(): Promise<Department[]>;
   getDepartment(id: string): Promise<Department | undefined>;
@@ -51,9 +56,27 @@ export class MemStorage implements IStorage {
   private attendance: Map<string, Attendance> = new Map();
   private leaveRequests: Map<string, LeaveRequest> = new Map();
   private leaveBalances: Map<string, LeaveBalance> = new Map();
+  private users: Map<string, User> = new Map();
 
   constructor() {
     this.initializeData();
+  }
+
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existingUser = this.users.get(userData.id);
+    const user: User = {
+      ...userData,
+      role: userData.role || "employee",
+      createdAt: existingUser?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as User;
+    this.users.set(userData.id, user);
+    return user;
   }
 
   private initializeData() {
@@ -153,7 +176,8 @@ export class MemStorage implements IStorage {
       phone: employee.phone || null,
       departmentId: employee.departmentId || null,
       salary: employee.salary || null,
-      avatar: employee.avatar || null
+      avatar: employee.avatar || null,
+      status: employee.status || "active"
     };
     this.employees.set(id, newEmployee);
     
@@ -262,7 +286,9 @@ export class MemStorage implements IStorage {
     const newLeaveRequest: LeaveRequest = { 
       ...leaveRequest, 
       id,
-      appliedAt: new Date().toISOString() as any,
+      status: leaveRequest.status || "pending",
+      reason: leaveRequest.reason || null,
+      appliedAt: new Date() as any,
       reviewedAt: null,
       reviewedBy: null
     };

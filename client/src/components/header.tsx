@@ -1,6 +1,17 @@
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import type { User as UserType } from "@shared/schema";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -14,7 +25,11 @@ const pageTitles: Record<string, string> = {
 
 export default function Header() {
   const [location] = useLocation();
+  const { user } = useAuth();
   const pageTitle = pageTitles[location] || "Dashboard";
+  
+  // Type guard to ensure user is properly typed
+  const typedUser = user as UserType | undefined;
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -43,6 +58,44 @@ export default function Header() {
             <Plus className="h-4 w-4 mr-2" />
             Quick Add
           </Button>
+          
+          {/* User Profile Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="relative h-8 w-8 rounded-full"
+                data-testid="button-user-menu"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={typedUser?.profileImageUrl || undefined} alt={typedUser?.firstName || "User"} />
+                  <AvatarFallback>
+                    {typedUser?.firstName ? typedUser.firstName[0].toUpperCase() : "U"}
+                    {typedUser?.lastName ? typedUser.lastName[0].toUpperCase() : ""}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {typedUser?.firstName} {typedUser?.lastName}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {typedUser?.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/api/logout" className="flex items-center cursor-pointer" data-testid="button-logout">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
