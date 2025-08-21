@@ -1,0 +1,749 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRConnect - Human Resource Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#1976D2',
+                        'primary-dark': '#1565C0',
+                        secondary: '#424242',
+                        accent: '#2196F3',
+                        success: '#4CAF50',
+                        warning: '#FF9800',
+                        error: '#F44336',
+                        'gray-50': '#FAFAFA',
+                        'gray-100': '#F5F5F5',
+                        'gray-900': '#212121',
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-gray-50 text-gray-900">
+    <!-- @COMPONENT: App [Main application container] -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar [Main navigation] -->
+        <aside class="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">HRConnect</h1>
+                        <p class="text-sm text-gray-600">HRMS v2.1</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 py-6">
+                <ul class="space-y-2 px-4">
+                    <li>
+                        <a href="#dashboard" class="nav-item active flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary text-white" data-view="dashboard">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#employees" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100" data-view="employees">
+                            <i class="fas fa-users"></i>
+                            <span>Employees</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#attendance" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100" data-view="attendance">
+                            <i class="fas fa-clock"></i>
+                            <span>Attendance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#leave" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100" data-view="leave">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Leave Management</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#departments" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100" data-view="departments">
+                            <i class="fas fa-building"></i>
+                            <span>Departments</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reports" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100" data-view="reports">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- User Profile Section -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <!-- Professional headshot of HR manager -->
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="HR Manager Profile" class="w-10 h-10 rounded-full object-cover" data-mock="true">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900" data-bind="currentUser.name">Sarah Johnson</p>
+                        <p class="text-xs text-gray-600" data-bind="currentUser.role">HR Manager</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 text-sm"></i>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent [Main application content area] -->
+        <main class="flex-1 overflow-hidden">
+            <!-- @COMPONENT: Header [Top navigation and user controls] -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <h2 id="page-title" class="text-2xl font-semibold text-gray-900">Dashboard</h2>
+                        <div class="hidden md:flex items-center space-x-2 text-sm text-gray-600">
+                            <span>Last updated:</span>
+                            <span data-bind="lastUpdated">Today, 2:30 PM</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+                        </button>
+                        <button class="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+                            <i class="fas fa-plus"></i>
+                            <span>Quick Add</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- @COMPONENT: ContentArea [Dynamic content based on navigation] -->
+            <div class="flex-1 overflow-y-auto p-6">
+                
+                <!-- @VIEW: Dashboard -->
+                <div id="dashboard-view" class="view-content">
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Total Employees</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.totalEmployees">48</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-primary text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-success">+2 this month</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Present Today</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.presentToday">42</p>
+                                </div>
+                                <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-success text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-gray-600">87.5% attendance</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Pending Leaves</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.pendingLeaves">7</p>
+                                </div>
+                                <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-alt text-warning text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-warning">Needs review</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600">Departments</p>
+                                    <p class="text-3xl font-bold text-gray-900" data-bind="stats.departments">8</p>
+                                </div>
+                                <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-building text-accent text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-sm text-gray-600">Active departments</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Recent Activity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Attendance Overview -->
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold text-gray-900">Attendance Overview</h3>
+                                <select class="text-sm border border-gray-300 rounded-lg px-3 py-2">
+                                    <option>Last 7 days</option>
+                                    <option>Last 30 days</option>
+                                    <option>Last 3 months</option>
+                                </select>
+                            </div>
+                            <!-- Modern office workplace with employees collaborating -->
+                            <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <p class="text-gray-600"><!-- @FUNCTIONALITY: Attendance chart component goes here --></p>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activities -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
+                            <div class="space-y-4">
+                                <!-- @MAP: recentActivities.map(activity => ( -->
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <!-- Professional employee headshot -->
+                                    <img src="https://pixabay.com/get/gc7f40cbed6962868123fd0b11f85138ed9de74c8ba74f3dd6c6ad4fd54c6dde1e50387dedb8d82d99a078ca67509347c655e27ff2179bee72740b6492e47e73b_1280.jpg" alt="Employee" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">Emily Chen submitted leave request</p>
+                                        <p class="text-xs text-gray-600">2 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <!-- Professional employee headshot -->
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">Michael Rodriguez clocked in</p>
+                                        <p class="text-xs text-gray-600">3 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3" data-mock="true">
+                                    <!-- Professional employee headshot -->
+                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-8 h-8 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">Sarah Kim updated profile</p>
+                                        <p class="text-xs text-gray-600">5 hours ago</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                            <button class="w-full mt-4 text-sm text-primary hover:text-primary-dark font-medium">
+                                View all activities
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- @VIEW: Employees Directory -->
+                <div id="employees-view" class="view-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <!-- Search and Filter Header -->
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                                <div class="flex-1 max-w-lg">
+                                    <div class="relative">
+                                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        <input type="text" placeholder="Search employees..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-4">
+                                    <select class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option>All Departments</option>
+                                        <option>Engineering</option>
+                                        <option>Marketing</option>
+                                        <option>Sales</option>
+                                        <option>HR</option>
+                                    </select>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+                                        <i class="fas fa-user-plus mr-2"></i>
+                                        Add Employee
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employee Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Employee</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Department</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Position</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Status</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <!-- @MAP: employees.map(employee => ( -->
+                                    <tr class="hover:bg-gray-50" data-mock="true">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <!-- Professional employee portrait in business attire -->
+                                                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-10 h-10 rounded-full object-cover">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">Jessica Martinez</p>
+                                                    <p class="text-sm text-gray-600">jessica.martinez@company.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">Engineering</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">Senior Developer</td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">Active</span>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-2">
+                                                <button class="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50" data-mock="true">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <!-- Professional employee portrait in business attire -->
+                                                <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-10 h-10 rounded-full object-cover">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">David Wilson</p>
+                                                    <p class="text-sm text-gray-600">david.wilson@company.com</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-purple-100 text-purple-800 rounded-full">Marketing</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">Marketing Manager</td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">Active</span>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-2">
+                                                <button class="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="p-2 text-gray-600 hover:text-primary hover:bg-gray-100 rounded">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="p-6 border-t border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-gray-600">Showing 1 to 10 of 48 employees</p>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Previous</button>
+                                    <button class="px-3 py-2 bg-primary text-white rounded-lg text-sm">1</button>
+                                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">2</button>
+                                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">3</button>
+                                    <button class="px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- @VIEW: Leave Management -->
+                <div id="leave-view" class="view-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Leave Requests -->
+                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="p-6 border-b border-gray-200">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-semibold text-gray-900">Leave Requests</h3>
+                                    <div class="flex items-center space-x-2">
+                                        <select class="text-sm border border-gray-300 rounded-lg px-3 py-2">
+                                            <option>All Requests</option>
+                                            <option>Pending</option>
+                                            <option>Approved</option>
+                                            <option>Rejected</option>
+                                        </select>
+                                        <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark text-sm">
+                                            <i class="fas fa-plus mr-2"></i>
+                                            New Request
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="divide-y divide-gray-200">
+                                <!-- @MAP: leaveRequests.map(request => ( -->
+                                <div class="p-6 hover:bg-gray-50" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-4">
+                                            <!-- Professional employee headshot -->
+                                            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-12 h-12 rounded-full object-cover">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">Annual Leave Request</h4>
+                                                <p class="text-sm text-gray-600">Emma Thompson • Engineering</p>
+                                                <p class="text-sm text-gray-600 mt-1">Dec 20, 2024 - Dec 30, 2024 (7 days)</p>
+                                                <p class="text-sm text-gray-500 mt-2">Family vacation during holidays</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
+                                            <div class="flex items-center space-x-2">
+                                                <button class="px-3 py-1 bg-green-100 text-green-800 hover:bg-green-200 rounded text-sm">
+                                                    Approve
+                                                </button>
+                                                <button class="px-3 py-1 bg-red-100 text-red-800 hover:bg-red-200 rounded text-sm">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-6 hover:bg-gray-50" data-mock="true">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-start space-x-4">
+                                            <!-- Professional employee headshot -->
+                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-12 h-12 rounded-full object-cover">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">Sick Leave</h4>
+                                                <p class="text-sm text-gray-600">James Anderson • Sales</p>
+                                                <p class="text-sm text-gray-600 mt-1">Dec 15, 2024 (1 day)</p>
+                                                <p class="text-sm text-gray-500 mt-2">Medical appointment</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <span class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">Approved</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+
+                        <!-- Leave Summary -->
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Leave Balance</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Annual Leave</span>
+                                        <span class="text-sm font-medium text-gray-900">18/25 days</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: 72%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-4 mt-6">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Sick Leave</span>
+                                        <span class="text-sm font-medium text-gray-900">3/10 days</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-warning h-2 rounded-full" style="width: 30%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Pending Requests</span>
+                                        <span class="text-2xl font-bold text-warning">7</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">This Month</span>
+                                        <span class="text-2xl font-bold text-primary">12</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-600">Average Days</span>
+                                        <span class="text-2xl font-bold text-gray-900">2.3</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- @VIEW: Attendance -->
+                <div id="attendance-view" class="view-content hidden">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="p-6 border-b border-gray-200">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                                <h3 class="text-lg font-semibold text-gray-900">Attendance Tracking</h3>
+                                <div class="flex items-center space-x-4">
+                                    <input type="date" class="border border-gray-300 rounded-lg px-4 py-2">
+                                    <select class="border border-gray-300 rounded-lg px-4 py-2">
+                                        <option>All Employees</option>
+                                        <option>Engineering</option>
+                                        <option>Marketing</option>
+                                        <option>Sales</option>
+                                    </select>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+                                        Export Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Employee</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Check In</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Check Out</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Hours</th>
+                                        <th class="text-left py-4 px-6 text-sm font-medium text-gray-900">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <!-- @MAP: attendanceRecords.map(record => ( -->
+                                    <tr class="hover:bg-gray-50" data-mock="true">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <!-- Professional employee headshot -->
+                                                <img src="https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Employee" class="w-10 h-10 rounded-full object-cover">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">Alex Thompson</p>
+                                                    <p class="text-sm text-gray-600">Engineering</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">9:15 AM</td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">6:30 PM</td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">8h 15m</td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">Present</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50" data-mock="true">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center space-x-3">
+                                                <!-- Professional employee headshot -->
+                                                <img src="https://pixabay.com/get/gc7f40cbed6962868123fd0b11f85138ed9de74c8ba74f3dd6c6ad4fd54c6dde1e50387dedb8d82d99a078ca67509347c655e27ff2179bee72740b6492e47e73b_1280.jpg" alt="Employee" class="w-10 h-10 rounded-full object-cover">
+                                                <div>
+                                                    <p class="font-medium text-gray-900">Maria Garcia</p>
+                                                    <p class="text-sm text-gray-600">Marketing</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">9:00 AM</td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">-</td>
+                                        <td class="py-4 px-6 text-sm text-gray-900">4h 30m</td>
+                                        <td class="py-4 px-6">
+                                            <span class="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">Working</span>
+                                        </td>
+                                    </tr>
+                                    <!-- @END_MAP )) -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- @VIEW: Departments -->
+                <div id="departments-view" class="view-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- @MAP: departments.map(dept => ( -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-mock="true">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-code text-primary text-xl"></i>
+                                </div>
+                                <button class="p-2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Engineering</h3>
+                            <p class="text-sm text-gray-600 mb-4">Software development and technical operations</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Employees</span>
+                                    <span class="text-sm font-medium text-gray-900">15</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Manager</span>
+                                    <span class="text-sm font-medium text-gray-900">John Smith</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Budget</span>
+                                    <span class="text-sm font-medium text-gray-900">$450,000</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-mock="true">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-bullhorn text-purple-600 text-xl"></i>
+                                </div>
+                                <button class="p-2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Marketing</h3>
+                            <p class="text-sm text-gray-600 mb-4">Brand promotion and customer acquisition</p>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Employees</span>
+                                    <span class="text-sm font-medium text-gray-900">8</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Manager</span>
+                                    <span class="text-sm font-medium text-gray-900">Lisa Chen</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Budget</span>
+                                    <span class="text-sm font-medium text-gray-900">$280,000</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- @VIEW: Reports -->
+                <div id="reports-view" class="view-content hidden">
+                    <div class="space-y-6">
+                        <!-- Report Filters -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Generate Reports</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <select class="border border-gray-300 rounded-lg px-4 py-2">
+                                    <option>Report Type</option>
+                                    <option>Attendance Report</option>
+                                    <option>Leave Report</option>
+                                    <option>Employee Report</option>
+                                </select>
+                                <input type="date" class="border border-gray-300 rounded-lg px-4 py-2">
+                                <input type="date" class="border border-gray-300 rounded-lg px-4 py-2">
+                                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+                                    Generate Report
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Reports -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-semibold text-gray-900">Monthly Attendance</h4>
+                                    <i class="fas fa-download text-gray-400 cursor-pointer hover:text-primary"></i>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Detailed attendance records for December 2024</p>
+                                <div class="text-2xl font-bold text-primary mb-2">87.5%</div>
+                                <p class="text-sm text-gray-600">Average attendance rate</p>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-semibold text-gray-900">Leave Summary</h4>
+                                    <i class="fas fa-download text-gray-400 cursor-pointer hover:text-primary"></i>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Leave utilization and patterns</p>
+                                <div class="text-2xl font-bold text-warning mb-2">42</div>
+                                <p class="text-sm text-gray-600">Total days taken this month</p>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-semibold text-gray-900">Department Stats</h4>
+                                    <i class="fas fa-download text-gray-400 cursor-pointer hover:text-primary"></i>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">Performance by department</p>
+                                <div class="text-2xl font-bold text-success mb-2">8</div>
+                                <p class="text-sm text-gray-600">Active departments</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- @END_COMPONENT: ContentArea -->
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: App -->
+
+    <script>
+        (function() {
+            // TODO: Implement state management and API integrations
+
+            // Navigation functionality
+            const navItems = document.querySelectorAll('.nav-item');
+            const viewContents = document.querySelectorAll('.view-content');
+            const pageTitle = document.getElementById('page-title');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Update active nav item
+                    navItems.forEach(nav => nav.classList.remove('active', 'bg-primary', 'text-white'));
+                    navItems.forEach(nav => nav.classList.add('text-gray-700', 'hover:bg-gray-100'));
+                    
+                    this.classList.remove('text-gray-700', 'hover:bg-gray-100');
+                    this.classList.add('active', 'bg-primary', 'text-white');
+                    
+                    // Show corresponding view
+                    const targetView = this.getAttribute('data-view');
+                    viewContents.forEach(view => view.classList.add('hidden'));
+                    
+                    const activeView = document.getElementById(targetView + '-view');
+                    if (activeView) {
+                        activeView.classList.remove('hidden');
+                    }
+                    
+                    // Update page title
+                    const viewTitles = {
+                        'dashboard': 'Dashboard',
+                        'employees': 'Employee Directory',
+                        'attendance': 'Attendance Tracking',
+                        'leave': 'Leave Management',
+                        'departments': 'Departments',
+                        'reports': 'Reports & Analytics'
+                    };
+                    
+                    pageTitle.textContent = viewTitles[targetView] || 'Dashboard';
+                });
+            });
+
+            // TODO: Implement search functionality
+            // TODO: Implement form validation
+            // TODO: Implement data filtering and sorting
+            // TODO: Implement leave approval/rejection logic
+            // TODO: Implement export functionality
+        })();
+    </script>
+</body>
+</html>
